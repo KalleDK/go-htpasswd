@@ -1,0 +1,41 @@
+name: Release
+on: [push]
+jobs:
+  build_binary:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        GOOS: [linux, freebsd]
+        GOARCH: [amd64, arm, arm64]
+        include:
+          - GOOS: windows
+            GOARCH: amd64
+      
+    name: Build ${{ matrix.GOOS }}/${{ matrix.GOARCH }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup Go
+      uses: actions/setup-go@v2
+    - run: mkdir bin
+    - run: GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -o ./bin/ ./htpasswd
+    - uses: actions/upload-artifact@v2
+      with:
+        name: bwenv-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+        path: ./bin/*
+  create_release:
+    needs: build_binary
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+    - uses: actions/download-artifact@v2
+    - name: Display structure of downloaded files
+      run: ls -R
+    - run: ls -1 | xargs -I {} tar -C {} -cf {}.tar .
+    - name: Display structure of downloaded files
+      run: ls -R
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: v0.0.0-alpha1
+        files: ./*.tar
