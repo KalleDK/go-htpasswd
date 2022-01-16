@@ -21,7 +21,7 @@ jobs:
     - run: GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -o ./bin/ ./htpasswd
     - uses: actions/upload-artifact@v2
       with:
-        name: bwenv-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+        name: htpasswd-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
         path: ./bin/*
   create_release:
     needs: build_binary
@@ -37,5 +37,4 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        name: v0.0.0-alpha1
         files: ./*.tar
